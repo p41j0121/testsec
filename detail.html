@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Detail Data Bulanan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f6f8;
+      padding: 30px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 20px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #00796b;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+    th {
+      background: #e0f2f1;
+    }
+    .back {
+      margin-top: 30px;
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      background-color: #00796b;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .back:hover {
+      background-color: #004d40;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="judul">📄 Detail</h1>
+    <div id="info"></div>
+    <div id="tabel"></div>
+    <a href="data.html" class="back">← Kembali ke Data</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const hal = params.get("hal");
+    const bulan = params.get("bulan") || "Januari";
+
+    const judulEl = document.getElementById("judul");
+    const infoEl = document.getElementById("info");
+    const tabelEl = document.getElementById("tabel");
+
+    const sheetIds = {
+      pemasukan: "1qbmLQPxnE9d3_RNeZ_vPfcDnNMr5cZWMJ5UMFeg6ZPo",
+      pengeluaran: "10T1EMZoAPSWsbFao5HEnl9odIJtVmnIayI2iHYsDypA"
+    };
+
+    function tampilkanTabel(csvData) {
+      const parsed = Papa.parse(csvData, { header: true });
+      const data = parsed.data;
+      if (data.length === 0) {
+        tabelEl.innerHTML = "<p>❌ Data kosong.</p>";
+        return;
+      }
+
+      const headers = Object.keys(data[0]);
+      let html = "<table><thead><tr>";
+      headers.forEach(h => html += `<th>${h}</th>`);
+      html += "</tr></thead><tbody>";
+      data.forEach(row => {
+        html += "<tr>";
+        headers.forEach(h => html += `<td>${row[h] || ""}</td>`);
+        html += "</tr>";
+      });
+      html += "</tbody></table>";
+      tabelEl.innerHTML = html;
+    }
+
+    function loadSheet(halaman, bulan) {
+      const sheetId = sheetIds[halaman];
+      if (!sheetId) {
+        tabelEl.innerHTML = "<p>❌ Halaman tidak valid.</p>";
+        return;
+      }
+
+      judulEl.innerText = (halaman === "pemasukan" ? "📥" : "📤") + " Data " + halaman.charAt(0).toUpperCase() + halaman.slice(1) + " - " + bulan;
+      infoEl.innerHTML = `<p><strong>Sumber:</strong> Sheet tab <em>${bulan}</em></p>`;
+
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(bulan)}`;
+
+      fetch(url)
+        .then(res => res.ok ? res.text() : Promise.reject("Gagal fetch data"))
+        .then(csv => tampilkanTabel(csv))
+        .catch(err => {
+          tabelEl.innerHTML = `<p style="color:red;">❌ Gagal memuat data: ${err}</p>`;
+        });
+    }
+
+    if (hal === "pemasukan" || hal === "pengeluaran") {
+      loadSheet(hal, bulan);
+    } else {
+      judulEl.innerText = "⚠️ Halaman Tidak Ditemukan";
+      tabelEl.innerHTML = "<p>Parameter URL tidak valid. Gunakan ?hal=pemasukan&bulan=Januari</p>";
+    }
+  </script>
+</body>
+</html>

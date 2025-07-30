@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Update Status Pembayaran</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body{font-family:'Nunito',sans-serif;background:#f0f4f7;padding:30px;margin:0}
+    .container{max-width:800px;margin:auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+    h1{text-align:center;color:#00796b}
+    label{display:block;margin-top:10px;font-weight:bold}
+    input,select{width:100%;padding:10px;font-size:16px;border-radius:8px;border:1px solid #ccc;margin-top:5px}
+    button{padding:12px 20px;background:#00796b;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;margin-top:15px}
+    button:hover{background:#004d40}
+    .result{margin-top:20px;background:#e0f2f1;padding:15px;border-radius:10px;font-size:16px}
+    .status-pill{display:inline-block;padding:3px 10px;border-radius:999px;color:#fff;font-weight:bold;font-size:14px}
+    .lunas{background:#2e7d32}.belum{background:#c62828}
+    .hidden{display:none}
+  </style>
+  <script>
+    if (localStorage.getItem("isAdminLoggedIn") !== "true") {
+      alert("❌ Akses ditolak. Silakan login terlebih dahulu.");
+      window.location.href = "data.html";
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Update Status Pembayaran</h1>
+    <label>Nomor Rumah</label>
+    <input type="text" id="rumah" placeholder="cth: K20" />
+    <label>Bulan</label>
+    <select id="bulan">
+      <option value="">Pilih Bulan</option>
+      <option>Januari</option><option>Februari</option><option>Maret</option>
+      <option>April</option><option>Mei</option><option>Juni</option>
+      <option>Juli</option><option>Agustus</option><option>September</option>
+      <option>Oktober</option><option>November</option><option>Desember</option>
+    </select>
+    <label>Tahun</label>
+    <select id="tahun">
+      <option value="">Pilih Tahun</option>
+      <option>2025</option><option>2026</option><option>2027</option>
+    </select>
+    <button onclick="cari()">Cari Tagihan</button>
+
+    <div id="result" class="result hidden"></div>
+    <div id="updateBox" class="result hidden">
+      <label>Status Baru</label>
+      <select id="statusBaru">
+        <option value="Lunas">Lunas</option>
+        <option value="Belum Lunas">Belum Lunas</option>
+      </select>
+      <button onclick="simpanStatus()">Simpan Status</button>
+      <p id="updateStatusMsg"></p>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzHNMdE7HoI6o5Ajq7ZTBKMuVUNG2YGkmF_hVUIcpMWLizTVh6rFP6ib9di6QHNmfKvkw/exec";
+    let currentRow = null;
+
+    function cari() {
+      const rumah = document.getElementById("rumah").value.trim().toUpperCase();
+      const bulan = document.getElementById("bulan").value;
+      const tahun = document.getElementById("tahun").value;
+      const result = document.getElementById("result");
+      const updateBox = document.getElementById("updateBox");
+
+      if (!rumah || !bulan || !tahun) {
+        result.classList.remove("hidden");
+        result.innerHTML = "❗ Lengkapi Nomor Rumah, Bulan, dan Tahun.";
+        updateBox.classList.add("hidden");
+        return;
+      }
+
+      result.classList.remove("hidden");
+      result.innerHTML = "🔄 Mengambil data...";
+      updateBox.classList.add("hidden");
+
+      const url = `${GAS_URL}?action=search&rumah=${encodeURIComponent(rumah)}&bulan=${encodeURIComponent(bulan)}&tahun=${encodeURIComponent(tahun)}&t=${Date.now()}`;
+
+      fetch(url, { cache: "no-store" })
+        .then(r => r.json())
+        .then(json => {
+          if (!json.success) {
+            result.innerHTML = "❌ " + (json.message || "Data tidak ditemukan.");
+            currentRow = null;
+            return;
+          }
+          currentRow = json.data;
+
+          const statusText = (currentRow.status || "").trim().toLowerCase();
+          const pill = statusText === "lunas"
+            ? '<span class="status-pill lunas">Lunas</span>'
+            : '<span class="status-pill belum">Belum Lunas</span>';
+
+          result.innerHTML = `
+            <div><strong>Nama:</strong> ${currentRow.nama}</div>
+            <div><strong>Rumah:</strong> ${currentRow.rumah}</div>
+            <div><strong>Bulan:</strong> ${currentRow.bulan}</div>
+            <div><strong>Tahun:</strong> ${currentRow.tahun}</div>
+            <div><strong>Status:</strong> ${pill}</div>
+          `;
+          document.getElementById("statusBaru").value = statusText === "lunas" ? "Lunas" : "Belum Lunas";
+          updateBox.classList.remove("hidden");
+        })
+        .catch(err => {
+          console.error(err);
+          result.innerHTML = "❌ Gagal mengambil data.";
+          currentRow = null;
+        });
+    }
+
+    function simpanStatus() {
+      if (!currentRow) return;
+
+      const statusBaru = document.getElementById("statusBaru").value;
+      const updateStatusMsg = document.getElementById("updateStatusMsg");
+      updateStatusMsg.style.color = "black";
+      updateStatusMsg.innerText = "⏳ Menyimpan status...";
+
+      const url = `${GAS_URL}?action=update_status&rumah=${encodeURIComponent(currentRow.rumah)}&bulan=${encodeURIComponent(currentRow.bulan)}&tahun=${encodeURIComponent(currentRow.tahun)}&status=${encodeURIComponent(statusBaru)}&t=${Date.now()}`;
+
+      fetch(url, { cache: "no-store" })
+        .then(async r => {
+          const text = await r.text();
+          let json;
+          try { json = JSON.parse(text); }
+          catch { throw new Error("Response bukan JSON: " + text.slice(0, 100)); }
+
+          if (json.success) {
+            updateStatusMsg.style.color = "green";
+            updateStatusMsg.innerText = "✅ Status berhasil diperbarui!";
+            setTimeout(() => cari(), 500);
+          } else {
+            throw new Error(json.message || "Unknown error");
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          updateStatusMsg.style.color = "red";
+          updateStatusMsg.innerText = "❌ Gagal: " + err.message;
+        });
+    }
+  </script>
+</body>
+</html>
