@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Pemasukan Bulanan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    h1 {
+      color: #00796b;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #555;
+    }
+    .bulan-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .bulan-container a {
+      text-decoration: none;
+      background-color: #009688;
+      color: white;
+      padding: 12px 20px;
+      margin: 10px;
+      border-radius: 10px;
+      transition: background 0.2s;
+      font-weight: bold;
+    }
+    .bulan-container a:hover {
+      background-color: #004d40;
+    }
+    .back {
+      display: inline-block;
+      margin-top: 40px;
+      padding: 10px 18px;
+      background-color: #ccc;
+      color: #333;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .back:hover {
+      background-color: #999;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📥 Pemasukan Bulanan</h1>
+  <p>Silakan pilih bulan untuk melihat data pemasukan:</p>
+
+  <div class="bulan-container">
+    <a href="detail.html?hal=pemasukan&bulan=Januari">Januari</a>
+    <a href="detail.html?hal=pemasukan&bulan=Februari">Februari</a>
+    <a href="detail.html?hal=pemasukan&bulan=Maret">Maret</a>
+    <a href="detail.html?hal=pemasukan&bulan=April">April</a>
+    <a href="detail.html?hal=pemasukan&bulan=Mei">Mei</a>
+    <a href="detail.html?hal=pemasukan&bulan=Juni">Juni</a>
+    <a href="detail.html?hal=pemasukan&bulan=Juli">Juli</a>
+    <a href="detail.html?hal=pemasukan&bulan=Agustus">Agustus</a>
+    <a href="detail.html?hal=pemasukan&bulan=September">September</a>
+    <a href="detail.html?hal=pemasukan&bulan=Oktober">Oktober</a>
+    <a href="detail.html?hal=pemasukan&bulan=November">November</a>
+    <a href="detail.html?hal=pemasukan&bulan=Desember">Desember</a>
+  </div>
+
+  <a href="data.html" class="back">← Kembali ke Data</a>
+
+</body>
+</html>

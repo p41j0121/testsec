@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Fasum dan Fasos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #f0f4f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #00796b;
+      margin-bottom: 30px;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .item {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: transform 0.2s ease;
+    }
+    .item:hover {
+      transform: translateY(-5px);
+    }
+    .item img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+    .caption {
+      padding: 15px;
+      text-align: center;
+      font-size: 1em;
+      color: #333;
+    }
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 30px;
+      text-decoration: none;
+      background-color: #00796b;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      max-width: 200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .back:hover {
+      background-color: #004d40;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌳 Fasilitas Umum dan Sosial</h1>
+
+  <div class="gallery">
+    <div class="item">
+      <img src="https://www.rukita.co/stories/wp-content/uploads/2022/05/olahraga-bola-voli.jpg" alt="Lapangan Voly">
+      <div class="caption">VOLY,FUTSAL BLOK CD</div>
+    </div>
+    <div class="item">
+      <img src="https://gelora-public-storage.s3-ap-southeast-1.amazonaws.com/upload/public-20240122041719.jpg" alt="Bulu Tangkis">
+      <div class="caption">Bulu Tangkis BLOK LM</div>
+    </div>
+    <div class="item">
+      <img src="https://rhdesainrumah.id/wp-content/uploads/2025/05/desain-mushola-minimalis-sederhana-warna-putih-dengan-tiang-megah.jpg" alt="Mushola">
+      <div class="caption">MUSHOLA AL MUSTOFA</div>
+    </div>
+  </div>
+
+  <a href="data.html" class="back">← Kembali</a>
+
+</body>
+</html>
