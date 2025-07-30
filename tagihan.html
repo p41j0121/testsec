@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Cek Tagihan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Nunito', sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #00796b; }
+    label { margin-top: 10px; display: block; font-weight: bold; }
+    input, select, button { width: 100%; padding: 10px; margin-top: 5px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background-color: #00796b; color: white; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    button:hover { background-color: #004d40; }
+    #hasil { margin-top: 20px; padding: 15px; background: #e0f2f1; border-radius: 8px; }
+    .pay-btn { background:#2e7d32; }
+    .pay-btn:hover { background:#1b5e20; }
+
+    .modal {
+      display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background:#fff; margin:6% auto; padding:20px; border-radius:12px; max-width:500px; position:relative;
+      box-shadow:0 8px 24px rgba(0,0,0,0.2);
+    }
+    .close {
+      position:absolute; right:15px; top:10px; font-size:22px; cursor:pointer; color:#999;
+    }
+    .close:hover { color:#333; }
+    .tab-buttons{ display:flex; gap:8px; margin-bottom:10px; }
+    .tab-buttons button{ flex:1; background:#607d8b; }
+    .tab-buttons button.active{ background:#004d40; }
+    .tab-panel{ display:none; }
+    .tab-panel.active{ display:block; }
+    .bank-box{
+      background:#f7f7f7; padding:12px; border-radius:8px; margin-top:8px; font-size:15px;
+    }
+    img.foto-meteran {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔍 Cek Tagihan</h2>
+    <label>Nomor Rumah</label>
+    <input type="text" id="rumah" placeholder="cth: K20">
+
+    <label>Bulan</label>
+    <select id="bulan">
+      <option value="">Pilih Bulan</option>
+      <option>Januari</option><option>Februari</option><option>Maret</option>
+      <option>April</option><option>Mei</option><option>Juni</option>
+      <option>Juli</option><option>Agustus</option><option>September</option>
+      <option>Oktober</option><option>November</option><option>Desember</option>
+    </select>
+
+    <label>Tahun</label>
+    <select id="tahun">
+      <option value="">Pilih Tahun</option>
+      <option>2025</option><option>2026</option><option>2027</option>
+      <option>2028</option><option>2029</option><option>2030</option>
+      <option>2039</option><option>2040</option><option>2041</option>
+      <option>2042</option><option>2043</option><option>2045</option>
+    </select>
+
+    <button onclick="cekTagihan()">Cek Tagihan</button>
+    <div id="hasil"></div>
+  </div>
+
+  <!-- MODAL PEMBAYARAN -->
+  <div id="payModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closePayModal()">✕</span>
+      <h3 style="text-align:center;color:#00796b;margin-bottom:10px;">💳 Metode Pembayaran</h3>
+      <div class="tab-buttons">
+        <button id="btnTabQRIS" class="active" onclick="switchTab('qris')">QRIS</button>
+        <button id="btnTabTF" onclick="switchTab('transfer')">Transfer</button>
+      </div>
+
+      <div id="tabQRIS" class="tab-panel active">
+        <p>Scan QRIS berikut, lalu simpan bukti pembayaran.</p>
+        <img src="qris.png" alt="QRIS" style="width:100%;border-radius:8px;">
+      </div>
+
+      <div id="tabTransfer" class="tab-panel">
+        <p>Transfer ke rekening berikut:</p>
+        <div class="bank-box">
+          <strong>Bank:</strong> BCA<br>
+          <strong>No. Rek:</strong> 1234567890<br>
+          <strong>Atas Nama:</strong> Paguyuban Citra Amarta
+        </div>
+      </div>
+
+      <button style="margin-top:15px;" onclick="openWhatsApp()">Konfirmasi via WhatsApp</button>
+    </div>
+  </div>
+
+  <script>
+    const GAS_URL   = "https://script.google.com/macros/s/AKfycbzefjRQlgLpqvffNvSJQVcaUF9e1-Aads8ChYqHZ1OnAYZMoz2PdibCmwQG7pAhim7z/exec";
+    const WA_NUMBER = "6281258214836";
+    let lastTagihan = null;
+
+    function cekTagihan() {
+      const rumah = document.getElementById("rumah").value.trim().toUpperCase();
+      const bulan = document.getElementById("bulan").value.trim();
+      const tahun = document.getElementById("tahun").value.trim();
+      const hasil = document.getElementById("hasil");
+
+      if (!rumah || !bulan || !tahun) {
+        hasil.innerHTML = "<span style='color:red;'>❗ Masukkan nomor rumah, bulan, dan tahun.</span>";
+        return;
+      }
+
+      hasil.innerHTML = "🔄 Mengambil data...";
+      const url = `${GAS_URL}?action=search&rumah=${encodeURIComponent(rumah)}&bulan=${encodeURIComponent(bulan)}&tahun=${encodeURIComponent(tahun)}&t=${Date.now()}`;
+
+      fetch(url, { cache: "no-store" })
+        .then(res => res.json())
+        .then(json => {
+          if (!json.success) {
+            hasil.innerHTML = "❌ Tagihan tidak ditemukan.";
+            lastTagihan = null;
+            return;
+          }
+
+          const t = json.data;
+          lastTagihan = t;
+
+          const statusColor = (t.status || '').toLowerCase() === 'lunas' ? 'green' : 'red';
+          const bayarBtn = (t.status || '').toLowerCase() === 'belum lunas'
+            ? `<button class="pay-btn" onclick="openPayModal()">💳 Bayar Sekarang</button>`
+            : '';
+
+          hasil.innerHTML = `
+            <strong>Nama:</strong> ${t.nama}<br>
+            <strong>Nomor Rumah:</strong> ${t.rumah}<br>
+            <strong>Bulan:</strong> ${t.bulan}<br>
+            <strong>Tahun:</strong> ${t.tahun}<br>
+            <strong>IPL:</strong> ${t.ipl}<br>
+            <strong>Air:</strong> ${t.air}<br>
+            <strong>Sampah:</strong> ${t.sampah}<br>
+            <strong>Status:</strong> <span style="color:${statusColor};font-weight:bold">${t.status || '-'}</span><br><br>
+            ${t.foto
+              ? `<img class="foto-meteran" src="${t.foto}" alt="Foto Meteran">`
+              : `<p style="color:gray;font-style:italic;">Belum ada foto meteran yang diunggah.</p>`}
+            ${bayarBtn}
+          `;
+        })
+        .catch(err => {
+          console.error(err);
+          hasil.innerHTML = "❌ Gagal mengambil data.";
+          lastTagihan = null;
+        });
+    }
+
+    function openPayModal() {
+      document.getElementById('payModal').style.display = 'block';
+      switchTab('qris');
+    }
+    function closePayModal() {
+      document.getElementById('payModal').style.display = 'none';
+    }
+    window.onclick = function(e) {
+      const modal = document.getElementById('payModal');
+      if (e.target === modal) modal.style.display = 'none';
+    }
+
+    function switchTab(tab) {
+      const btnQR  = document.getElementById('btnTabQRIS');
+      const btnTF  = document.getElementById('btnTabTF');
+      const tabQR  = document.getElementById('tabQRIS');
+      const tabTF  = document.getElementById('tabTransfer');
+
+      if (tab === 'qris') {
+        btnQR.classList.add('active'); btnTF.classList.remove('active');
+        tabQR.classList.add('active'); tabTF.classList.remove('active');
+      } else {
+        btnTF.classList.add('active'); btnQR.classList.remove('active');
+        tabTF.classList.add('active'); tabQR.classList.remove('active');
+      }
+    }
+
+    function openWhatsApp() {
+      if (!lastTagihan) return;
+      const t = lastTagihan;
+      const pesan = 
+`Halo Admin, saya ingin konfirmasi pembayaran tagihan.
+
+Nama: ${t.nama}
+Rumah: ${t.rumah}
+Periode: ${t.bulan} ${t.tahun}
+IPL: ${t.ipl}
+Air: ${t.air}
+Sampah: ${t.sampah}
+Status saat ini di sistem: ${t.status}
+
+Sudah saya bayar. Mohon dicek ya. Terima kasih.`;
+
+      const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(pesan)}`;
+      window.open(url, '_blank');
+    }
+  </script>
+</body>
+</html>
